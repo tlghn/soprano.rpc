@@ -1,0 +1,31 @@
+{
+  "name": "soprano.rpc",
+  "version": "1.0.0",
+  "description": "RPC Protocol for Soprano",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests --recursive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tlghn/soprano.rpc.git"
+  },
+  "keywords": [
+    "rpc",
+    "soprano-rpc",
+    "simple-rpc"
+  ],
+  "author": "Tolgahan ALBAYRAK",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tlghn/soprano.rpc/issues"
+  },
+  "homepage": "https://github.com/tlghn/soprano.rpc#readme",
+  "dependencies": {
+    "calp": "^1.2.0",
+    "soprano": "^0.1.6"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0"
+  }
+}
