@@ -1,6 +1,6 @@
 {
   "name": "soprano.rpc",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "RPC Protocol for Soprano",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/tlghn/soprano.rpc#readme",
   "dependencies": {
     "calp": "^1.2.0",
-    "soprano": "^0.2.4"
+    "soprano": "^0.2.5"
   },
   "devDependencies": {
     "chai": "^3.5.0"
