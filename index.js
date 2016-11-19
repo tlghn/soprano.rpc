@@ -3,35 +3,39 @@
  */
 "use strict";
 
-const Soprano = require('soprano');
-const DisposableSet = require('soprano/core/DisposableSet');
-const errors = require('soprano/core/errors');
-
-const Input = require('./Input');
-const Output = require('./Output');
-const Symbols = require('soprano/core/symbols');
 const calp = require('calp');
+const Soprano = require('soprano');
+const errors = Soprano.errors;
+
+const Symbols = Soprano.Symbols;
 const MethodCollection = Soprano.MethodCollection;
-const FilterFactory = Soprano.FilterFactory;
 const NS = Symbol('rpc-ns');
 
 const HEADER = Buffer.from('RPC');
 
 class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
+
     constructor(soprano, header = void 0){
         super(soprano, header || HEADER);
         this.setResource(Symbols.map, new MethodCollection());
-        this.setResource(Symbols.filterFactory, new FilterFactory());
-        this.setResource(Symbols.handlers, new DisposableSet(this));
     }
 
-    createInput(){
-        return new Input();
-    }
-
+    //noinspection JSMethodCanBeStatic
     createOutput(){
-        return new Output();
+        return [
+            new Soprano.JSONTransformer(false),
+            new Soprano.LengthPrefixedTransformer(false)
+        ];
     }
+
+    //noinspection JSMethodCanBeStatic
+    createInput(){
+        return [
+            new Soprano.LengthPrefixedTransformer(true),
+            new Soprano.JSONTransformer(true)
+        ];
+    }
+
 
     /***
      * @returns {MethodCollection}
@@ -41,28 +45,13 @@ class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
         return this.getResource(Symbols.map);
     }
 
-    get _middleWares(){
-        return this.getResource(Symbols.handlers);
-    }
-    
-    use(generatorFunc){
-        if(!Soprano.isGeneratorFunction(generatorFunc)){
-            throw new errors.InvalidArgumentError('generatorFunc must be GeneratorFunction');
-        }
-
-
-        this._middleWares.add(generatorFunc);
-    }
-
     *execute(name){
         var args = Array.prototype.slice.call(arguments, 1);
         let obj = {name, args};
 
-        for(var mw of this._middleWares){
-            obj = yield mw(obj);
-        }
+        var result;
 
-        let result = yield this._execute(obj);
+        result = yield this._execute(obj);
 
         if(result && result.error){
             var err = result.error;
@@ -80,11 +69,12 @@ class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
         yield result;
     }
 
-    *handle(data, connection){
+    *handle(err, data, connection){
         yield Soprano.captureErrors;
         try{
-            for(var mw of this._middleWares){
-                data = yield mw(data, connection);
+            if(err){
+                //noinspection ExceptionCaughtLocallyJS
+                throw err;
             }
 
             if(!Array.isArray(data.args)){
@@ -97,27 +87,6 @@ class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
         } catch (err) {
             yield {error: Object.assign({name: err.name, message: err.message}, err)};
         }
-    }
-
-    /**
-     * @returns {FilterFactory}
-     */
-    get filterFactory(){
-        return this.getResource(Symbols.filterFactory);
-    }
-
-    set filterFactory(/*FilterFactory*/value){
-        this.setResource(Symbols.filterFactory, value, true);
-    }
-
-    *createInputFilter(){
-        let {filterFactory} = this;
-        yield filterFactory.createInputFilter();
-    }
-
-    *createOutputFilter(){
-        let {filterFactory} = this;
-        yield filterFactory.createOutputFilter();
     }
 
     /**

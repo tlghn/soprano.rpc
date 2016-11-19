@@ -13,7 +13,6 @@ const RPCProtocol = require('../');
 
 
 
-
 it('Simple Call', function (done) {
     const soprano = new Soprano();
     const rpcProtocol = new RPCProtocol(soprano);
