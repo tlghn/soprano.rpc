@@ -45,13 +45,13 @@ class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
         return this.getResource(Symbols.map);
     }
 
-    *execute(name){
+    async execute(name){
         var args = Array.prototype.slice.call(arguments, 1);
         let obj = {name, args};
 
         var result;
 
-        result = yield this._execute(obj);
+        result = await this._execute(obj);
 
         if(result && result.error){
             var err = result.error;
@@ -66,11 +66,10 @@ class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
             throw error;
         }
 
-        yield result;
+        return result;
     }
 
-    *handle(err, data, connection){
-        yield Soprano.captureErrors;
+    async handle(err, data, connection){
         try{
             if(err){
                 //noinspection ExceptionCaughtLocallyJS
@@ -83,9 +82,9 @@ class RPCProtocol extends Soprano.FixedHeaderRequestResponseProtocol {
                 data.args.push(connection);
             }
 
-            yield this._methods.execute(data.name, data.args);
+            return await this._methods.execute(data.name, data.args);
         } catch (err) {
-            yield {error: Object.assign({name: err.name, message: err.message}, err)};
+            return await {error: Object.assign({name: err.name, message: err.message}, err)};
         }
     }
 

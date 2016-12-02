@@ -11,15 +11,15 @@ const FilterFactory = require('soprano').FilterFactory;
 
 class TestFilterFactory extends FilterFactory {
 
-    *createInputFilter(){
-        yield [
+    createInputFilter(){
+        return [
             zlib.createGunzip(),
             crypto.createDecipher('aes-192-ctr', '123456')
         ];
     }
 
-    *createOutputFilter(){
-        yield [
+    createOutputFilter(){
+        return [
             crypto.createCipher('aes-192-ctr', '123456'),
             zlib.createGzip()
         ];

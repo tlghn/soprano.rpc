@@ -17,16 +17,16 @@ it('Simple Call', function (done) {
     const soprano = new Soprano();
     const rpcProtocol = new RPCProtocol(soprano);
 
-    rpcProtocol.map.mul(function *(a, b) {
-        yield a * b;
+    rpcProtocol.map.mul(function (a, b) {
+        return a * b;
     });
     const executor = rpcProtocol.executor;
 
-    Soprano.run(function *() {
-        yield soprano.bind(rpcProtocol);
-        let server = yield soprano.listen();
+    (async function () {
+        await soprano.bind(rpcProtocol);
+        let server = await soprano.listen();
         try{
-            let result = yield executor.mul(3, 2);
+            let result = await executor.mul(3, 2);
             expect(result).to.equal(6);
             done();
         } finally {
@@ -34,23 +34,23 @@ it('Simple Call', function (done) {
             rpcProtocol.dispose();
             soprano.dispose();
         }
-    })
+    })();
 });
 
 it('Error Handling', function (done) {
     const soprano = new Soprano();
     const rpcProtocol = new RPCProtocol(soprano);
 
-    rpcProtocol.map.throwSomeError(function *() {
+    rpcProtocol.map.throwSomeError(function () {
         throw new Error('AN ERROR');
     });
     const executor = rpcProtocol.executor;
 
-    Soprano.run(function *() {
-        yield soprano.bind(rpcProtocol);
-        let server = yield soprano.listen();
+    (async function () {
+        await soprano.bind(rpcProtocol);
+        let server = await soprano.listen();
         try{
-            yield executor.throwSomeError();
+            await executor.throwSomeError();
         } catch (err) {
             expect(err.message).to.equal('AN ERROR');
             done();
@@ -59,31 +59,31 @@ it('Error Handling', function (done) {
             rpcProtocol.dispose();
             soprano.dispose();
         }
-    });
+    })();
 });
 
 it('Middlewares', function (done) {
     const soprano = new Soprano();
     const rpcProtocol = new RPCProtocol(soprano);
-    rpcProtocol.use(function *(obj, req) {
+    rpcProtocol.use(function(obj, req) {
         if(req){
             req.auth = obj.auth;
         } else {
             obj.auth = 'test';
         }
-        yield obj;
+        return obj;
     });
 
-    rpcProtocol.map.getAuth(function *(req) {
-        yield req.auth;
+    rpcProtocol.map.getAuth(function(req) {
+        return req.auth;
     });
     const executor = rpcProtocol.executor;
 
-    Soprano.run(function *() {
-        yield soprano.bind(rpcProtocol);
-        let server = yield soprano.listen();
+    (async function () {
+        await soprano.bind(rpcProtocol);
+        let server = await soprano.listen();
         try{
-            let auth = yield executor.getAuth();
+            let auth = await executor.getAuth();
             expect(auth).to.equals('test');
             done();
         } finally {
@@ -91,13 +91,13 @@ it('Middlewares', function (done) {
             rpcProtocol.dispose();
             soprano.dispose();
         }
-    });
+    })();
 });
 
 it('Middleware Error Handling', function (done) {
     const soprano = new Soprano();
     const rpcProtocol = new RPCProtocol(soprano);
-    rpcProtocol.use(function *(obj, req) {
+    rpcProtocol.use(function(obj, req) {
         if(req){
             if(req.auth !== 'test'){
                 throw new TypeError('Invalid Auth');
@@ -105,19 +105,19 @@ it('Middleware Error Handling', function (done) {
         } else {
             obj.auth = 'wrong auth';
         }
-        yield obj;
+        return obj;
     });
 
-    rpcProtocol.map.add(function *(a, b, req) {
-        yield a + b;
+    rpcProtocol.map.add(function(a, b, req) {
+        return a + b;
     });
     const executor = rpcProtocol.executor;
 
-    Soprano.run(function *() {
-        yield soprano.bind(rpcProtocol);
-        let server = yield soprano.listen();
+    (async function () {
+        await soprano.bind(rpcProtocol);
+        let server = await soprano.listen();
         try{
-            let total = yield executor.add(1, 2);
+            let total = await executor.add(1, 2);
         } catch (err) {
             assert(err instanceof TypeError);
             expect(err.message).to.equal('Invalid Auth');
@@ -127,7 +127,7 @@ it('Middleware Error Handling', function (done) {
             rpcProtocol.dispose();
             soprano.dispose();
         }
-    });
+    })();
 });
 
 it('Stream Filters', function (done) {
@@ -137,16 +137,16 @@ it('Stream Filters', function (done) {
 
     rpcProtocol.filterFactory = new TestFilterFactory();
 
-    rpcProtocol.map.mul(function *(a, b) {
-        yield a * b;
+    rpcProtocol.map.mul(function (a, b) {
+        return a * b;
     });
     const executor = rpcProtocol.executor;
 
-    Soprano.run(function *() {
-        yield soprano.bind(rpcProtocol);
-        let server = yield soprano.listen();
+    (async function () {
+        await soprano.bind(rpcProtocol);
+        let server = await soprano.listen();
         try{
-            let result = yield executor.mul(3, 2);
+            let result = await executor.mul(3, 2);
             expect(result).to.equal(6);
             done();
         } finally {
@@ -154,5 +154,5 @@ it('Stream Filters', function (done) {
             rpcProtocol.dispose();
             soprano.dispose();
         }
-    })
+    })();
 });
